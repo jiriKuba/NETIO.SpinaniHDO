@@ -17,3 +17,8 @@ Pro odkrokování kódu je potřeba odkomentovat blok **NETIO MOCK METHODS**. Te
 ## Zdroje
 1. API ČEZu https://www.cez.cz/edee/content/sysutf/ds3/data/hdo_data.json (Tento endpoint používá webová aplikace ČEZu a není jisté jestli se rozhraní nebude měnit)
 2. Aplikační poznámky **NETIO**: https://www.netio-products.com/cs/aplikacni-poznamky/an07-periodicky-kalendar-pro-rizeni-vystupu-v-textove-podobe-lua-skriptem
+3. Pro debug a parserování _JSON_ je v repozitáři kopie **dkjson** knihovny: http://dkolf.de/src/dkjson-lua.fsl/home
+
+## TODOs:
+- Otestovat na NETIO 4
+- Napsat dokumentaci ke scriptu
