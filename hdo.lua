@@ -1,5 +1,5 @@
 ------------Section 1------------
-local invalidState = 0 -- select state for invalid values
+local invalidStateValue = false -- select state for invalid values
 
 local region = "Vychod" -- options: Vychod, Stred, Sever, Zapad, Morava
 local code = "A1B6DP1" -- povel, kód, nebo kód povelu
@@ -14,10 +14,10 @@ local swapped = false
 
 -- uncomment this for VS Code debug
 ---------NETIO MOCK METHODS-------
-require "netioMock"
-local cezValidJsonString = "[{\"id\":\"6280\",\"validFrom\":\"1. 4. 2019\",\"validTo\":\"1. 1. 2099\",\"dumpId\":\"27\",\"povel\":\"181\",\"kodPovelu\":\"A1B6Dp1\",\"sazba\":\"D45d\",\"info\":\"sazba\",\"platnost\":\"Po - Pá\",\"doba\":\"20\",\"casZap1\":\"00:00\",\"casVyp1\":\"01:30\",\"casZap2\":\"02:25\",\"casVyp2\":\"07:00\",\"casZap3\":\"08:00\",\"casVyp3\":\"13:50\",\"casZap4\":\"14:50\",\"casVyp4\":\"17:30\",\"casZap5\":\"18:30\",\"casVyp5\":\"23:59\",\"casZap6\":\"\",\"casVyp6\":\"\",\"casZap7\":\"\",\"casVyp7\":\"\",\"casZap8\":\"\",\"casVyp8\":\"\",\"casZap9\":\"\",\"casVyp9\":\"\",\"casZap10\":\"\",\"casVyp10\":\"\",\"date\":\"2019-03-22 07:21:55.688\",\"description\":\"2019_jaro_vychod\"},{\"id\":\"6281\",\"validFrom\":\"1. 4. 2019\",\"validTo\":\"1. 1. 2099\",\"dumpId\":\"27\",\"povel\":\"181\",\"kodPovelu\":\"A1B6Dp1\",\"sazba\":\"D45d\",\"info\":\"sazba\",\"platnost\":\"So - Ne\",\"doba\":\"20\",\"casZap1\":\"00:00\",\"casVyp1\":\"00:40\",\"casZap2\":\"01:40\",\"casVyp2\":\"03:50\",\"casZap3\":\"04:50\",\"casVyp3\":\"11:35\",\"casZap4\":\"12:30\",\"casVyp4\":\"18:20\",\"casZap5\":\"19:20\",\"casVyp5\":\"23:59\",\"casZap6\":\"\",\"casVyp6\":\"\",\"casZap7\":\"\",\"casVyp7\":\"\",\"casZap8\":\"\",\"casVyp8\":\"\",\"casZap9\":\"\",\"casVyp9\":\"\",\"casZap10\":\"\",\"casVyp10\":\"\",\"date\":\"2019-03-22 07:21:55.688\",\"description\":\"2019_jaro_vychod\"}]"
-local cezInvalidJsonString = "[]"
-cgiGetResult.response = cezValidJsonString;
+-- require "netioMock"
+-- local cezValidJsonString = "[{\"id\":\"6280\",\"validFrom\":\"1. 4. 2019\",\"validTo\":\"1. 1. 2099\",\"dumpId\":\"27\",\"povel\":\"181\",\"kodPovelu\":\"A1B6Dp1\",\"sazba\":\"D45d\",\"info\":\"sazba\",\"platnost\":\"Po - Pá\",\"doba\":\"20\",\"casZap1\":\"00:00\",\"casVyp1\":\"01:30\",\"casZap2\":\"02:25\",\"casVyp2\":\"07:00\",\"casZap3\":\"08:00\",\"casVyp3\":\"13:50\",\"casZap4\":\"14:50\",\"casVyp4\":\"17:30\",\"casZap5\":\"18:30\",\"casVyp5\":\"23:59\",\"casZap6\":\"\",\"casVyp6\":\"\",\"casZap7\":\"\",\"casVyp7\":\"\",\"casZap8\":\"\",\"casVyp8\":\"\",\"casZap9\":\"\",\"casVyp9\":\"\",\"casZap10\":\"\",\"casVyp10\":\"\",\"date\":\"2019-03-22 07:21:55.688\",\"description\":\"2019_jaro_vychod\"},{\"id\":\"6281\",\"validFrom\":\"1. 4. 2019\",\"validTo\":\"1. 1. 2099\",\"dumpId\":\"27\",\"povel\":\"181\",\"kodPovelu\":\"A1B6Dp1\",\"sazba\":\"D45d\",\"info\":\"sazba\",\"platnost\":\"So - Ne\",\"doba\":\"20\",\"casZap1\":\"00:00\",\"casVyp1\":\"00:40\",\"casZap2\":\"01:40\",\"casVyp2\":\"03:50\",\"casZap3\":\"04:50\",\"casVyp3\":\"11:35\",\"casZap4\":\"12:30\",\"casVyp4\":\"18:20\",\"casZap5\":\"19:20\",\"casVyp5\":\"23:59\",\"casZap6\":\"\",\"casVyp6\":\"\",\"casZap7\":\"\",\"casVyp7\":\"\",\"casZap8\":\"\",\"casVyp8\":\"\",\"casZap9\":\"\",\"casVyp9\":\"\",\"casZap10\":\"\",\"casVyp10\":\"\",\"date\":\"2019-03-22 07:21:55.688\",\"description\":\"2019_jaro_vychod\"}]"
+-- local cezInvalidJsonString = "[]"
+-- cgiGetResult.response = cezValidJsonString
 -----End of NETIO MOCK METHOD-----
 
 local function buildUrl()
@@ -35,11 +35,18 @@ function getCalendar(o)
     isError = false
     local myjson = o.buffer
     local jsonCalendar = json.decode(myjson)
-    setNetioCalendar(jsonCalendar)
-  else
+    if next(jsonCalendar) == nil then
+      isError = true
+      o.errorInfo = "Response is empty JSON"    
+    else
+      setNetioCalendar(jsonCalendar)
+    end
+  end
+
+  if isError == true then
     log(string.format("CGI get failed with error %d: %s. Next attempt in 10s.", o.result, o.errorInfo))
     for i=1,4 do
-      devices.system.SetOut{output=i, value=invalidState}
+      devices.system.SetOut{output=i, value=invalidStateValue}
     end
     delay(10, function() call() end)  
   end
@@ -76,6 +83,7 @@ function string.starts(String,Start)
   return string.sub(String,1,string.len(Start))==Start
 end
 
+------------NETIO AN07 Section------------
 function checkFormat()
   for i=1,4 do
     local test = tonumber(initialState:sub(i,i))
@@ -231,5 +239,7 @@ end
 function initiate()
   setOutputs(initialState)
 end
+
+------------End NETIO AN07 Section------------
 
 call()

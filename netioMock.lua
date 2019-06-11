@@ -1,10 +1,18 @@
 ----- NETIO MOCK METHOD section-----
 -- TODO: cover full NETIO Lua references: https://wiki.netio-products.com/index.php?title=NETIO_Lua_Reference
 -- delay
+-- https://wiki.netio-products.com/index.php?title=Function_delay()
 local clock = os.clock
 function delay(n, callback)  -- seconds
   local t0 = clock()
   while clock() - t0 <= n do end
+  callback();
+end
+
+-- https://wiki.netio-products.com/index.php?title=Function_milliDelay()
+function milliDelay(n, callback)  -- miliseconds
+  local t0 = clock()
+  while (clock() - t0) * 1000 <= n do end
   callback();
 end
 
