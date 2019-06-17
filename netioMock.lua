@@ -21,6 +21,10 @@ function log(message)
   print(message)
 end
 
+function logf(message, ...)
+  print(string.format(message, ...))
+end
+
 -- cgiGet
 cgiGetResult = { response = "" };
 function cgiGet(data)
