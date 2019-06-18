@@ -5,6 +5,8 @@
 Script stahuje *JSON* data z API ČEZu. Data obsahují dobu spínání nízkého tarifu (nt).
 Časy se poté použijí pro vytvoření plánu zapínání a vypínání zásuvky.
 
+Podrobná dokumentace: <https://jirikuba.github.io/NETIO.SpinaniHDO/>
+
 ## Parametry
 
 1. Parametr `region` slouží pro zadání regionu bydliště. Možnosti: *Vychod, Stred, Sever, Zapad, Morava*
@@ -24,3 +26,4 @@ Pro odkrokování kódu je potřeba odkomentovat blok **NETIO MOCK METHODS**. Te
 
 - Otestovat na NETIO 4
 - Napsat dokumentaci ke scriptu
+- Doplnit implementace referenčních metod

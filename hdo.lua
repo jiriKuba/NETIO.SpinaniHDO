@@ -1,12 +1,12 @@
 ------------Section 1------------
-local invalidStateValue = false -- select state for invalid values
-
 local region = "Vychod" -- options: Vychod, Stred, Sever, Zapad, Morava
 local code = "A1B6DP1" -- povel, kód, nebo kód povelu
 local baseApiUrl = "https://www.cez.cz/edee/content/sysutf/ds3/data/hdo_data.json" -- CEZ api for getting hdo by parameters (obtained by monitoring of request from the CEZ web site)
 
 local states = {} 
 local initialState = "0000" -- state to which outputs will be set after restart (0-5) 
+local onState = "1111" -- state when HDO is on 
+local offState = "0000" -- state when HDO is off  
 local shortTimeMs = 1000 -- time used for action 2 and 3 [milliseconds]
 local sortedStates = {}
 local swapped = false
@@ -21,11 +21,12 @@ local swapped = false
 -----End of NETIO MOCK METHOD-----
 
 local function buildUrl()
-  return string.format (baseApiUrl .. "?&code=%s&region%s=1", region, code)
+  return string.format(baseApiUrl .. "?&code=%s&region%s=1", code, region)
 end
 
 local function call() -- send request to CEZ API
   local cezUrl = buildUrl()
+  log("API url: " ..cezUrl)
   cgiGet{url=cezUrl, callback=getCalendar }
 end
 
@@ -45,9 +46,6 @@ function getCalendar(o)
 
   if isError == true then
     log(string.format("CGI get failed with error %d: %s. Next attempt in 10s.", o.result, o.errorInfo))
-    for i=1,4 do
-      devices.system.SetOut{output=i, value=invalidStateValue}
-    end
     delay(10, function() call() end)  
   end
 end
@@ -55,9 +53,7 @@ end
 function setNetioCalendar(jsonCalendar)
   transformJsonCalendarToNetioCalendar(jsonCalendar)
   checkFormat()
-  initiate()
   loadStates()
-  sortStates()
   startScheduler()
 end
 
@@ -73,14 +69,10 @@ function insertState(calTable, dayString)
     local onTime = calTable["casZap" .. i]
     local offTime = calTable["casVyp" .. i]
     if onTime ~= nil and onTime ~= "" and offTime ~= nil and offTime ~= "" then      
-      table.insert(states, "1111," .. onTime .. ":00," .. dayString)
-      table.insert(states, "0000," .. offTime .. ":00," .. dayString)
+      table.insert(states, onState .. "," .. onTime .. ":00," .. dayString)
+      table.insert(states, offState .. "," .. offTime .. ":00," .. dayString)
     end
   end
-end
-
-function string.starts(String,Start)
-  return string.sub(String,1,string.len(Start))==Start
 end
 
 ------------NETIO AN07 Section------------
@@ -138,35 +130,25 @@ function loadStates()
   end
 end
  
-function sortStates()
-  for i=1,#states-1 do
-    swapped = false
-    for j=1, #states-1 do
-      if sortedStates[j].time > sortedStates[j+1].time then
-        local temp = sortedStates[j]
-        sortedStates[j] = sortedStates[j+1]
-        sortedStates[j+1] = temp
-        swapped = true;
-      end 
-    end
-    if not swapped then
-      break
-    end
-  end
-end
- 
 function startScheduler()
   -- Current time
   local stringTime = os.date("%X")
   local time = (3600*tonumber(stringTime:sub(1,2)) + 60*tonumber(stringTime:sub(4,5)) + tonumber(stringTime:sub(7,8)))
   local nextState = sortedStates[1].state
   local timeLeft = (86400-time+sortedStates[1].time)
+
   local stateIndex = 1
   for i=1,#sortedStates do
-    if time < sortedStates[i].time then
-      nextState = sortedStates[i].state
-      timeLeft = (sortedStates[i].time - time)
-      stateIndex = i
+    if time < sortedStates[i].time and i ~= 1 then
+      -- i = next state, we need i - 1 to set current state
+      prevIndex = i - 1
+
+      -- check today is day from state
+      if checkDay(sortedStates[prevIndex].state) then
+        nextState = sortedStates[prevIndex].state
+        timeLeft = (sortedStates[prevIndex].time - time)
+        stateIndex = prevIndex
+      end
       break
     end
   end
@@ -241,5 +223,10 @@ function initiate()
 end
 
 ------------End NETIO AN07 Section------------
-
-call()
+------------Start Section------------
+function start()
+  initiate()
+  call()
+end
+start()
+------------End of Start Section------------
