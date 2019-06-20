@@ -54,4 +54,4 @@ Instalace nástrojů a vývoj je uváděn na platformě *Windows*.
 
 * Čas a dobu sepnutí HDO řídí distributor elektrické energie, tedy v ČR  [ČEZ](https://www.cezdistribuce.cz/cs/pro-zakazniky/spinani-hdo.html) a [E.ON](https://www.eon.cz/domacnosti/kontakty-podpora/poruchy-a-technicke-dotazy/cas-nizkeho-tarifu/jake-jsou-casy-spinani-hdo).
 
-* Tyto údaje mají časově omezenou platnost, tedy se vypltí použít nějaké automatizované řešení pro plánování spínání zásuvek při *nt*. Proto byl vytvořen tento script pro chytrou zásuvku *NETIO*.
+* Tyto údaje mají časově omezenou platnost, tedy se vyplatí použít nějaké automatizované řešení pro plánování spínání zásuvek při *nt*. Proto byl vytvořen tento script pro chytrou zásuvku *NETIO*.
