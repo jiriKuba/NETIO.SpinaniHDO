@@ -1,25 +1,25 @@
-------------Section 1------------
+------------Section 1: Configuration------------
 local region = "Vychod" -- options: Vychod, Stred, Sever, Zapad, Morava
 local code = "A1B6DP1" -- povel, kód, nebo kód povelu
 local baseApiUrl = "https://www.cez.cz/edee/content/sysutf/ds3/data/hdo_data.json" -- CEZ api for getting hdo by parameters (obtained by monitoring of request from the CEZ web site)
 
-local states = {} 
 local initialState = "0000" -- state to which outputs will be set after restart (0-5) 
 local onState = "1111" -- state when HDO is on 
 local offState = "0000" -- state when HDO is off  
 local shortTimeMs = 1000 -- time used for action 2 and 3 [milliseconds]
+local states = {} 
 local sortedStates = {}
-local swapped = false
----------End of Section 1---------
+---------End of Section 1: Configuration---------
 
--- uncomment this for VS Code debug
----------NETIO MOCK METHODS-------
+-- --uncomment this for VS Code debug
+---------Section 2: Debug------------------------
 -- require "netioMock"
 -- local cezValidJsonString = "[{\"id\":\"6280\",\"validFrom\":\"1. 4. 2019\",\"validTo\":\"1. 1. 2099\",\"dumpId\":\"27\",\"povel\":\"181\",\"kodPovelu\":\"A1B6Dp1\",\"sazba\":\"D45d\",\"info\":\"sazba\",\"platnost\":\"Po - Pá\",\"doba\":\"20\",\"casZap1\":\"00:00\",\"casVyp1\":\"01:30\",\"casZap2\":\"02:25\",\"casVyp2\":\"07:00\",\"casZap3\":\"08:00\",\"casVyp3\":\"13:50\",\"casZap4\":\"14:50\",\"casVyp4\":\"17:30\",\"casZap5\":\"18:30\",\"casVyp5\":\"23:59\",\"casZap6\":\"\",\"casVyp6\":\"\",\"casZap7\":\"\",\"casVyp7\":\"\",\"casZap8\":\"\",\"casVyp8\":\"\",\"casZap9\":\"\",\"casVyp9\":\"\",\"casZap10\":\"\",\"casVyp10\":\"\",\"date\":\"2019-03-22 07:21:55.688\",\"description\":\"2019_jaro_vychod\"},{\"id\":\"6281\",\"validFrom\":\"1. 4. 2019\",\"validTo\":\"1. 1. 2099\",\"dumpId\":\"27\",\"povel\":\"181\",\"kodPovelu\":\"A1B6Dp1\",\"sazba\":\"D45d\",\"info\":\"sazba\",\"platnost\":\"So - Ne\",\"doba\":\"20\",\"casZap1\":\"00:00\",\"casVyp1\":\"00:40\",\"casZap2\":\"01:40\",\"casVyp2\":\"03:50\",\"casZap3\":\"04:50\",\"casVyp3\":\"11:35\",\"casZap4\":\"12:30\",\"casVyp4\":\"18:20\",\"casZap5\":\"19:20\",\"casVyp5\":\"23:59\",\"casZap6\":\"\",\"casVyp6\":\"\",\"casZap7\":\"\",\"casVyp7\":\"\",\"casZap8\":\"\",\"casVyp8\":\"\",\"casZap9\":\"\",\"casVyp9\":\"\",\"casZap10\":\"\",\"casVyp10\":\"\",\"date\":\"2019-03-22 07:21:55.688\",\"description\":\"2019_jaro_vychod\"}]"
 -- local cezInvalidJsonString = "[]"
 -- cgiGetResult.response = cezValidJsonString
------End of NETIO MOCK METHOD-----
+---------End of Section 2: Debug----------------
 
+------------Section 3: Data download------------
 local function buildUrl()
   return string.format(baseApiUrl .. "?&code=%s&region%s=1", code, region)
 end
@@ -49,7 +49,9 @@ function getCalendar(o)
     delay(10, function() call() end)  
   end
 end
+---------End of Section 3: Data download----------------
 
+------------Section 4: Data transform-------------------
 function setNetioCalendar(jsonCalendar)
   transformJsonCalendarToNetioCalendar(jsonCalendar)
   checkFormat()
@@ -74,8 +76,9 @@ function insertState(calTable, dayString)
     end
   end
 end
+---------End of Section 4: Data transform----------------
 
-------------NETIO AN07 Section------------
+------------Section 5: Schedule--------------------------
 function checkFormat()
   for i=1,4 do
     local test = tonumber(initialState:sub(i,i))
@@ -217,16 +220,17 @@ function setOutputs(state)
     end
   end
 end
- 
+---------End of Section 5: Schedule---------------------
+
+------------Section 6: Startup--------------------------
 function initiate()
   setOutputs(initialState)
 end
 
-------------End NETIO AN07 Section------------
-------------Start Section------------
 function start()
   initiate()
   call()
 end
+
 start()
-------------End of Start Section------------
+---------End of Section 6: Startup----------------------
