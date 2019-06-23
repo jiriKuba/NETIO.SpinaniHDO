@@ -25,5 +25,5 @@ Pro odkrokování kódu je potřeba odkomentovat blok **NETIO MOCK METHODS**. Te
 ## TODOs
 
 - ~~Otestovat na NETIO 4~~
-- Napsat dokumentaci ke scriptu
+- ~~Napsat dokumentaci ke scriptu~~
 - Doplnit implementace referenčních metod
